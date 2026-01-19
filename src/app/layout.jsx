@@ -78,8 +78,6 @@
 //   );
 // }
 
-
-
 "use client";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -87,8 +85,7 @@ import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "./Component/Navbar";
 import NextAuthProvider from "@/provider/NextAuthProvider";
-import GlobalLoader from "./Component/GlobalLoader";
-
+import NextTopLoader from "./Component/NextTopLoader";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -120,8 +117,8 @@ export default function RootLayout({ children }) {
           <AuthProvider>
             <ThemeProvider>
               {/* ২. গ্লোবাল লোডার এখানে থাকবে */}
-              <GlobalLoader /> 
-              
+              <NextTopLoader />
+
               <Navbar />
               <main className="pt-16 border">{children}</main>
             </ThemeProvider>

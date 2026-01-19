@@ -13,6 +13,8 @@ import Team from "./Component/Team";
 import Contact from "./Component/Testimony";
 import IndividualServices from "./Component/IndividualServices";
 
+import FleetPreview from "./Component/fleeet";
+
 export default async function Home() {
   const session = await getServerSession(authOptions);
 
@@ -23,34 +25,10 @@ export default async function Home() {
       <main className=" mx-auto max-w-7xl">
         <IndividualServices></IndividualServices>
       </main>
+      <FleetPreview></FleetPreview>
 
-      {/* Main content container */}
-      <div className="flex items-center justify-center py-12 px-4">
-        <div className="text-center max-w-xl w-full">
-        
-          <UserCard />
-
-            <LoginButton />
-         
-
-          <p className="text-base-content/70 mb-8">
-            This is the home page with Axios + MongoDB data.
-          </p>
-
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">User Session</h2>
-            <div className="bg-base-200 rounded-lg p-4 border">
-              {session ? (
-                <pre className="text-left text-sm overflow-x-auto">
-                  {JSON.stringify(session, null, 2)}
-                </pre>
-              ) : (
-                <p className="text-base-content/70">No active session</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      
+    
 
       {/* Full-width Footer */}
       <Services />

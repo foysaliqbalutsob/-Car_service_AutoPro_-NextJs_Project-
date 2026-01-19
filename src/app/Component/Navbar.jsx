@@ -243,9 +243,9 @@ export default function Navbar() {
   const authLinks = (
     <>
       <li><NavLink href="/dashboard">Dashboard</NavLink></li>
-      <li><NavLink href="/my-bookings">My Bookings</NavLink></li>
+      <li><NavLink href="/MyBooking">My Bookings</NavLink></li>
       <li><NavLink href="/services">Services</NavLink></li>
-      <li><NavLink href="/fleet">Fleet Management</NavLink></li>
+      <li><NavLink href="/fleetManagement">Fleet Management</NavLink></li>
       <li><NavLink href="/Support">Support</NavLink></li>
     </>
   );
