@@ -1,5 +1,6 @@
 import clientPromise from "@/app/lib/dbConnect";
 import bcrypt from "bcryptjs";
+import { NextResponse } from "next/server";
 
 export async function GET(request) {
   try {
@@ -111,5 +112,30 @@ export async function POST(request) {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
+  }
+}
+
+
+export async function PATCH(request) {
+  try {
+    const body = await request.json();
+    const { email, ...updateData } = body;
+
+    const client = await clientPromise;
+    const db = client.db(process.env.DB_NAME);
+
+    // MongoDB তে আপডেট লজিক
+    const result = await db.collection("users").updateOne(
+      { email: email },
+      { $set: updateData }
+    );
+
+    if (result.modifiedCount > 0 || result.matchedCount > 0) {
+      return NextResponse.json({ message: "Update Successful" }, { status: 200 });
+    } else {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -6,6 +6,8 @@ import {
 } from 'react-icons/md';
 
 import Services from '../Component/Service';
+import IndividualServices from '../Component/IndividualServices';
+import ComparisonTable from '../Component/ComparisonTable';
 
 const Service = () => {
   return (
@@ -23,12 +25,13 @@ const Service = () => {
         </div>
       </div>
 
-      {/* --- আলাদা করা Packages কম্পোনেন্ট এখানে কল করা হয়েছে --- */}
+      
       
       <Services></Services>
+      <ComparisonTable></ComparisonTable>
+      <IndividualServices></IndividualServices>
 
-      {/* Comparison Table এবং Individual Services এর বাকি কোড এখানে থাকবে... */}
-      {/* (আগের কোডের মতো একই থাকবে) */}
+      
 
     </div>
   );

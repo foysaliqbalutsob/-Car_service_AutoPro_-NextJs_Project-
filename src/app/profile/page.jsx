@@ -1,287 +1,165 @@
+
 "use client";
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
+ // Zustand Store
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 import Swal from "sweetalert2";
+import { uploadImageToImgBB } from "../lib/imageUplad";
+import { useAuthStore } from "../api/Store/useUserStore";
+import api from "../lib/axios";
+
 
 export default function ProfilePage() {
-  const { user, isAuthenticated } = useAuth();
+  // Zustand থেকে ডাটা এবং ফাংশন নেওয়া
+  const { user, isAuthenticated, updateProfile } = useAuthStore();
+  
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userData, setUserData] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm();
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
 
+  // ইউজার ডাটা দিয়ে ফর্ম ফিলাপ করা
   useEffect(() => {
-    if (isAuthenticated && user?.email) {
-      fetchUserData();
+    if (user) {
+      setValue("firstName", user.firstName || user.name?.split(' ')[0]);
+      setValue("lastName", user.lastName || user.name?.split(' ')[1]);
+      setValue("email", user.email);
+      setValue("phone", user.phone || "");
+      setValue("vehicleType", user.vehicleType || "");
+      setImagePreview(user.image || user.avatar);
     }
-  }, [isAuthenticated, user]);
+  }, [user, setValue]);
 
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch(`/api/users?email=${user.email}`);
-      if (response.ok) {
-        const data = await response.json();
-        setUserData(data);
-        // Set form values
-        setValue("firstName", data.firstName);
-        setValue("lastName", data.lastName);
-        setValue("email", data.email);
-        setValue("phone", data.phone);
-        setValue("vehicleType", data.vehicleType);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-    }
-  };
-
-  const onSubmit = async (data) => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/users", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: user.email,
-          ...data,
-          image: imagePreview,
-        }),
-      });
-
-      if (response.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "Profile Updated",
-          text: "Your profile has been updated successfully!",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-        setIsEditing(false);
-        fetchUserData(); // Refresh data
-      } else {
-        throw new Error("Failed to update profile");
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Update Failed",
-        text: error.message || "Please try again",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // ইমেজের প্রিভিউ দেখানো
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      setSelectedFile(file);
+      setImagePreview(URL.createObjectURL(file)); // টেম্পোরারি প্রিভিউ
     }
   };
+const onSubmit = async (data) => {
+  setLoading(true);
+  try {
+    let finalImageUrl = imagePreview;
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="mb-4">You need to be logged in to view this page.</p>
-          <Link href="/login" className="btn btn-primary">
-            Go to Login
-          </Link>
-        </div>
-      </div>
-    );
+    // ১. ImgBB তে ইমেজ আপলোড
+    if (selectedFile) {
+      const uploadedUrl = await uploadImageToImgBB(selectedFile);
+      if (uploadedUrl) finalImageUrl = uploadedUrl;
+    }
+
+    // ২. Axios PATCH রিকোয়েস্ট (সঠিক পদ্ধতি)
+    // আমরা সরাসরি ডাটা অবজেক্ট পাঠাবো
+    const response = await api.patch("/users", {
+      email: user.email, // ফিল্টার করার জন্য ইমেইল
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+      vehicleType: data.vehicleType,
+      image: finalImageUrl, // নতুন আপলোড করা ইমেজ ইউআরএল
+    });
+
+    // Axios এ সফল হলে response.status চেক করতে হয়
+    if (response.status === 200) {
+      // ৩. Zustand Store আপডেট করা
+      updateProfile({
+        ...data,
+        name: `${data.firstName} ${data.lastName}`,
+        image: finalImageUrl
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Profile Updated",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      setIsEditing(false);
+    }
+  } catch (error) {
+    console.error("Update Error:", error.response?.data || error.message);
+    Swal.fire({ 
+      icon: "error", 
+      title: "Update Failed", 
+      text: error.response?.data?.message || "Cannot save in server" 
+    });
+  } finally {
+    setLoading(false);
   }
+};
+
+  if (!isAuthenticated) return (
+    <div className="flex h-screen items-center justify-center">
+        <Link href="/login" className="btn btn-primary">Please Login</Link>
+    </div>
+  );
 
   return (
-    <div className="flex min-h-screen bg-base-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-bold">User Profile</h1>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="btn btn-outline btn-primary"
-            >
-              {isEditing ? "Cancel" : "Edit Profile"}
-            </button>
+    <div className="max-w-2xl mx-auto p-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">My Profile</h1>
+        <button onClick={() => setIsEditing(!isEditing)} className="btn btn-outline btn-sm">
+          {isEditing ? "Cancel" : "Edit Profile"}
+        </button>
+      </div>
+
+      <div className="card bg-base-100 shadow-xl p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          
+          {/* প্রোফাইল ইমেজ সেকশন */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="avatar">
+              <div className="w-24 rounded-full ring ring-primary">
+                <img src={imagePreview || "/default-avatar.png"} alt="Profile" />
+              </div>
+            </div>
+            {isEditing && (
+              <input type="file" onChange={handleImageChange} className="file-input file-input-bordered w-full max-w-xs" />
+            )}
           </div>
 
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              {/* Profile Image */}
-              <div className="avatar mx-auto mb-6">
-                <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                  <img
-                    src={
-                      imagePreview ||
-                      userData?.image ||
-                      user?.image ||
-                      "/default-avatar.png"
-                    }
-                    alt="Profile"
-                  />
-                </div>
-                {isEditing && (
-                  <div className="mt-2">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="file-input file-input-bordered file-input-sm w-full max-w-xs"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {/* Name Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-semibold">
-                        First Name
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      {...register("firstName", {
-                        required: "First name is required",
-                      })}
-                      className="input input-bordered"
-                      readOnly={!isEditing}
-                    />
-                    {errors.firstName && (
-                      <span className="text-red-500 text-sm">
-                        {errors.firstName.message}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-semibold">
-                        Last Name
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      {...register("lastName", {
-                        required: "Last name is required",
-                      })}
-                      className="input input-bordered"
-                      readOnly={!isEditing}
-                    />
-                    {errors.lastName && (
-                      <span className="text-red-500 text-sm">
-                        {errors.lastName.message}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Email</span>
-                  </label>
-                  <input
-                    type="email"
-                    {...register("email", { required: "Email is required" })}
-                    className="input input-bordered"
-                    readOnly={!isEditing}
-                  />
-                  {errors.email && (
-                    <span className="text-red-500 text-sm">
-                      {errors.email.message}
-                    </span>
-                  )}
-                </div>
-
-                {/* Phone */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">
-                      Phone Number
-                    </span>
-                  </label>
-                  <input
-                    type="tel"
-                    {...register("phone", {
-                      required: "Phone number is required",
-                    })}
-                    className="input input-bordered"
-                    readOnly={!isEditing}
-                  />
-                  {errors.phone && (
-                    <span className="text-red-500 text-sm">
-                      {errors.phone.message}
-                    </span>
-                  )}
-                </div>
-
-                {/* Vehicle Type */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">
-                      Vehicle Type
-                    </span>
-                  </label>
-                  <select
-                    {...register("vehicleType", {
-                      required: "Vehicle type is required",
-                    })}
-                    className="select select-bordered"
-                    disabled={!isEditing}
-                  >
-                    <option value="">Select vehicle type</option>
-                    <option value="sedan">Sedan</option>
-                    <option value="suv">SUV</option>
-                    <option value="truck">Truck / Pickup</option>
-                    <option value="van">Van</option>
-                    <option value="coupe">Coupe / Sports Car</option>
-                    <option value="electric">Electric / Hybrid</option>
-                  </select>
-                  {errors.vehicleType && (
-                    <span className="text-red-500 text-sm">
-                      {errors.vehicleType.message}
-                    </span>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="card-actions justify-between mt-6">
-                  <Link href="/" className="btn btn-outline">
-                    Back to Home
-                  </Link>
-                  {isEditing && (
-                    <button
-                      type="submit"
-                      className="btn btn-primary"
-                      disabled={loading}
-                    >
-                      {loading ? "Saving..." : "Save Changes"}
-                    </button>
-                  )}
-                </div>
-              </form>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-control">
+              <label className="label-text font-bold">First Name</label>
+              <input {...register("firstName")} className="input input-bordered" readOnly={!isEditing} />
+            </div>
+            <div className="form-control">
+              <label className="label-text font-bold">Last Name</label>
+              <input {...register("lastName")} className="input input-bordered" readOnly={!isEditing} />
             </div>
           </div>
-        </div>
+
+          <div className="form-control">
+            <label className="label-text font-bold">Email</label>
+            <input {...register("email")} className="input input-bordered opacity-60" readOnly />
+          </div>
+
+          <div className="form-control">
+            <label className="label-text font-bold">Phone</label>
+            <input {...register("phone")} className="input input-bordered" readOnly={!isEditing} />
+          </div>
+
+          {isEditing && (
+  <button
+    type="submit"
+    className="btn btn-primary w-full gap-2"
+    disabled={loading}
+  >
+    {loading ? (
+      <>
+        <span className="loading loading-spinner loading-sm"></span>
+        Updating Profile...
+      </>
+    ) : (
+      "Save Changes"
+    )}
+  </button>
+)}
+        </form>
       </div>
     </div>
   );
