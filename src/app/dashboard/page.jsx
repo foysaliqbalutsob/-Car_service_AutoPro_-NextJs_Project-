@@ -82,34 +82,49 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 md:space-y-8">
+      {/* Header Section: মোবাইলে কলাম আর বড় স্ক্রিনে রো */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Welcome back, Robert!</h1>
-          <p className="text-slate-500 text-sm">Your vehicles are in good hands today.</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">
+            Welcome back, Robert!
+          </h1>
+          <p className="text-slate-500 text-xs md:text-sm">
+            Your vehicles are in good hands today.
+          </p>
         </div>
-        <Link href="/dashboard/activeBooking" className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg font-bold text-sm transition-all shadow-lg shadow-primary/20 text-center">
+        <Link 
+          href="/dashboard/activeBooking" 
+          className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary/20 text-center w-full sm:w-auto"
+        >
           + Book New Service
         </Link>
       </div>
 
+      {/* Stats Cards: এর ভেতরে grid-cols-1 md:grid-cols-3 থাকা উচিত */}
       <StatCards data={dashboardData.stats} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
+      {/* Main Grid: মোবাইলে সব নিচে নিচে আসবে */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-1 w-full">
           <LiveStatus status={dashboardData.liveStatus} />
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 w-full">
           <VehicleGrid vehicles={dashboardData.vehicles} />
         </div>
       </div>
 
+      {/* History Table: মোবাইলে টেবিল ওভারফ্লো হ্যান্ডেল করা জরুরি */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Recent Service History</h2>
-          <button className="text-sm text-primary font-medium hover:underline">View All</button>
+        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+          <h2 className="text-lg md:text-xl font-bold">Recent Service History</h2>
+          <button className="text-xs md:text-sm text-primary font-medium hover:underline">View All</button>
         </div>
-        <ServiceTable /> 
+        
+        {/* টেবিলটি রেসপন্সিভ করতে ServiceTable এর ভেতরে overflow-x-auto ক্লাসটি দিন */}
+        <div className="overflow-x-auto w-full">
+           <ServiceTable /> 
+        </div>
       </div>
     </div>
   );

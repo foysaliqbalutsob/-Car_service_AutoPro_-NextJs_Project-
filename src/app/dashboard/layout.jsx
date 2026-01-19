@@ -1,20 +1,38 @@
 
- // আলাদা হেডার কম্পোনেন্ট
+//  // আলাদা হেডার কম্পোনেন্ট
+
+// import Sidebar from "./Sidebar";
+
+// export default function DashboardLayout({ children }) {
+//   return (
+//     <div className="flex min-h-screen bg-[#f5f7f8] dark:bg-[#101722]">
+//       {/* ফিক্সড সাইডবার */}
+//       <Sidebar />
+      
+//       {/* মেইন কন্টেন্ট এরিয়া */}
+//       <div className="flex-1 lg:ml-64 flex flex-col">
+//         {/* শেয়ারড হেডার (সার্চ বার, প্রোফাইল ড্রপডাউন সহ) */}
+       
+        
+//         <main className="p-4 md:p-8">
+//           {children}
+//         </main>
+//       </div>
+//     </div>
+//   );
+// }
 
 import Sidebar from "./Sidebar";
 
 export default function DashboardLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-[#f5f7f8] dark:bg-[#101722]">
-      {/* ফিক্সড সাইডবার */}
+      {/* সাইডবার: মোবাইলে এটি hidden থাকতে পারে বা ড্রয়ার হিসেবে কাজ করবে */}
       <Sidebar />
       
-      {/* মেইন কন্টেন্ট এরিয়া */}
-      <div className="flex-1 lg:ml-64 flex flex-col">
-        {/* শেয়ারড হেডার (সার্চ বার, প্রোফাইল ড্রপডাউন সহ) */}
-       
-        
-        <main className="p-4 md:p-8">
+      {/* মেইন কন্টেন্ট: মোবাইলে ml-0 এবং বড় স্ক্রিনে ml-64 */}
+      <div className="flex-1 lg:ml-64 flex flex-col w-full overflow-x-hidden">
+        <main className="p-4 md:p-6 lg:p-8 w-full max-w-[100vw]">
           {children}
         </main>
       </div>
