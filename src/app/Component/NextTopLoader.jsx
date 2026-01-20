@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react"; // Suspense ইমপোর্ট করুন
 import { usePathname, useSearchParams } from "next/navigation";
 import nProgress from "nprogress";
 import "nprogress/nprogress.css";
@@ -13,15 +13,14 @@ nProgress.configure({
   speed: 500,
 });
 
-export default function NextTopLoader() {
+// মূল লজিকটি আলাদা একটি ছোট কম্পোনেন্টে নিয়ে যান
+function LoaderHandler() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Start progress bar when navigation begins
     nProgress.start();
 
-    // Complete progress bar when page loads
     const timer = setTimeout(() => {
       nProgress.done();
     }, 100);
@@ -33,4 +32,13 @@ export default function NextTopLoader() {
   }, [pathname, searchParams]);
 
   return null;
+}
+
+// এই মেইন কম্পোনেন্টটি এখন নিরাপদ (Build Safe)
+export default function NextTopLoader() {
+  return (
+    <Suspense fallback={null}>
+      <LoaderHandler />
+    </Suspense>
+  );
 }

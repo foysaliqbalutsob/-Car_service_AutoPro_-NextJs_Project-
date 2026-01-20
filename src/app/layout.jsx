@@ -116,7 +116,7 @@ export default function RootLayout({ children }) {
         >
           <AuthProvider>
             <ThemeProvider>
-              {/* ২. গ্লোবাল লোডার এখানে থাকবে */}
+              {/* Next.js route change progress bar */}
               <NextTopLoader />
 
               <Navbar />
