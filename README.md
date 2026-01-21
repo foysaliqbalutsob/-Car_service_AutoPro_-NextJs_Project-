@@ -62,8 +62,5 @@ A fully responsive command center for users to monitor their fleet health and se
 
 ---
 
-## 🔧 Installation & Setup
-
-1. **Clone the repo:**
-   ```bash
-   git clone [https://github.com/your-username/auto-fleet.git](https://github.com/your-username/auto-fleet.git)
+## 🔧 Demo
+Live Link: https://car-management-topaz-eta.vercel.app/
